@@ -53,7 +53,9 @@ async function getUserName(): Promise<string> {
 // ==========================================
 
 // Mention the expected element type for an empty array
-const productNames: string[] = [];
+const productNames: string[] = [];//one way to define array type
+let names:Array<string> = [];
+let namess:string[] = [];
 
 productNames.push("Laptop");
 productNames.push("Phone");
