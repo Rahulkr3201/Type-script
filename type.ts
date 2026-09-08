@@ -177,4 +177,133 @@ employee.addSkill("Angular");
 
 console.log(employee.skills); // ["TypeScript", "Angular"]
 
-//Type allias 
+// ==========================================
+// 7. TYPE ALIAS  ( type  vs  interface )
+// ==========================================
+
+// `type` creates a NAME for a shape. Unlike let/const it holds no value --
+// it exists only during type checking and disappears from the compiled .js.
+
+// ------------------------------------------
+// 7.1 Object shapes: both work, interchangeable
+// ------------------------------------------
+
+type StudentType = {
+  name: string;
+  rollNo: number;
+};
+
+interface StudentInterface {
+  name: string;
+  rollNo: number;
+}
+
+const s1: StudentType = { name: "Rahul", rollNo: 123 };
+const s2: StudentInterface = { name: "Amit", rollNo: 124 };
+
+// ------------------------------------------
+// 7.2 Unions: ONLY type can do this
+// ------------------------------------------
+
+type PaymentStatus = "pending" | "completed" | "failed";
+type StudentId = string | number;
+
+// interface PaymentStatus = "pending" | "completed"; // Error: impossible, an
+// interface always describes exactly one object shape
+
+function findStudent(id: StudentId): void {
+  console.log(`Searching for ${id}`);
+}
+
+findStudent(101);
+findStudent("STU-101");
+
+// ------------------------------------------
+// 7.3 Declaration merging: ONLY interface can do this
+// ------------------------------------------
+
+// Declaring the same interface twice MERGES the two declarations
+interface AppConfig {
+  apiUrl: string;
+}
+
+interface AppConfig {
+  timeout: number;
+}
+
+// AppConfig is now { apiUrl: string; timeout: number } -- both are required
+const config: AppConfig = {
+  apiUrl: "https://api.example.com",
+  timeout: 5000,
+};
+
+// type AppConfig = { apiUrl: string };
+// type AppConfig = { timeout: number }; // Error: Duplicate identifier 'AppConfig'
+
+// This is why libraries use interface for public APIs: consumers can add fields
+// from their own file. In app code it is a footgun -- two accidental
+// `interface User` declarations merge silently instead of warning you.
+
+// ------------------------------------------
+// 7.4 Combining: extends  vs  &
+// ------------------------------------------
+
+interface Animal {
+  name: string;
+}
+
+// interface uses extends
+interface Dog extends Animal {
+  breed: string;
+}
+
+// type uses an intersection (&)
+type Cat = Animal & {
+  livesLeft: number;
+};
+
+const dog: Dog = { name: "Bruno", breed: "Labrador" };
+const cat: Cat = { name: "Kitty", livesLeft: 9 };
+
+// Difference on CONFLICTING fields:
+
+// interface Broken extends Animal { name: number; }
+// Error: Interface 'Broken' incorrectly extends 'Animal' -- caught immediately
+
+type Silent = Animal & { name: number };
+// No error here, but `name` is now `never` (nothing is both string and number),
+// so the type is unusable and you only find out at the assignment site:
+// const bad: Silent = { name: "x" }; // Error: string is not assignable to never
+
+// ------------------------------------------
+// 7.5 Non-object types: ONLY type
+// ------------------------------------------
+
+type Email = string;                         // primitive alias, for readability
+type Coordinates = [number, number];         // tuple
+type ClickHandler = (event: string) => void; // function signature
+type StudentKeys = keyof StudentType;        // "name" | "rollNo"
+type PartialStudent = { [K in StudentKeys]?: StudentType[K] }; // mapped type
+
+const email: Email = "rahul@example.com";
+const coords: Coordinates = [12.97, 77.59];
+const onClick: ClickHandler = (event) => console.log(event);
+const draft: PartialStudent = { name: "Rahul" }; // rollNo is optional here
+
+// ------------------------------------------
+// 7.6 Summary
+// ------------------------------------------
+
+// FEATURE                        type    interface
+// object shapes                   yes       yes
+// unions (|)                      yes       NO
+// primitives / tuples / fns       yes       NO
+// mapped & conditional types      yes       NO
+// declaration merging             NO        yes
+// combine with                    &         extends
+// catches conflicting fields      NO        yes
+// implements on a class           yes       yes
+
+// RULE OF THUMB: interface for object and class shapes, type for unions,
+// primitives, functions and tuples. For a plain object shape they are
+// interchangeable -- what matters is picking one and being consistent.
