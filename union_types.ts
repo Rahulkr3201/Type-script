@@ -11,11 +11,19 @@ printUserId("USR-101");
 
 //Literal Types
 type Status = "loading" | "success" | "error";
-let status: Status;
-status = "loading"; // ✅
-status = "success"; // ✅
-status = "error";   // ✅
-status = "failed";  // ❌
+// NOTE: renamed from `status` -- this file has no import/export, so it is a
+// script and its top-level names sit in the GLOBAL scope, where `status`
+// already exists (the DOM's window.status). Real project files are modules,
+// so their names stay local and this clash does not happen.
+let currentStatus: Status;
+currentStatus = "loading"; // ✅
+currentStatus = "success"; // ✅
+currentStatus = "error";   // ✅
+// The directive below tells TS "the next line MUST error" -- it keeps this
+// demo in the file without breaking the build, and warns you if the line
+// ever stops erroring (e.g. if you later add "failed" to Status).
+// @ts-expect-error
+currentStatus = "failed";  // ❌ Type '"failed"' is not assignable to type 'Status'.
 
 //and 
 type Person = {
